@@ -1318,7 +1318,7 @@ function rcp_maybe_disable_toolbar() {
 
 	global $rcp_options;
 
-	if ( isset( $rcp_options['disable_toolbar'] ) && ! current_user_can( 'manage_options' ) ) {
+	if ( isset( $rcp_options['disable_toolbar'] ) && ! current_user_can( 'edit_posts' ) ) {
 		add_filter( 'show_admin_bar', '__return_false' );
 	}
 }

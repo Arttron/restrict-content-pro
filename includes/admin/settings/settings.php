@@ -1585,7 +1585,7 @@ function rcp_settings_page() {
 							</th>
 							<td>
 								<input type="checkbox" value="1" name="rcp_settings[disable_toolbar]" id="rcp_settings[disable_toolbar]"<?php checked( true, isset( $rcp_options['disable_toolbar'] ) ); ?>/>
-								<span class="description"><?php _e( 'Check this if you\'d like to disable the WordPress toolbar for subscribers. Note: will not disable the toolbar for administrators.', 'rcp' ); ?></span>
+								<span class="description"><?php _e( 'Check this if you\'d like to disable the WordPress toolbar for members. Note: will not disable the toolbar for users with the edit_posts capability (e.g. authors, editors, & admins).', 'rcp' ); ?></span>
 							</td>
 						</tr>
 						<tr valign="top">

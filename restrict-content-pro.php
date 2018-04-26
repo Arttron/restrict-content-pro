@@ -364,10 +364,10 @@ function rcp_register_databases() {
 
 	global $wpdb, $rcp_payments_db, $rcp_levels_db, $rcp_discounts_db;
 
-	$rcp_payments_db   = new RCP_Payments;
-	$rcp_levels_db     = new RCP_Levels;
-	$rcp_discounts_db  = new RCP_Discounts;
-	$wpdb->levelmeta   = $rcp_levels_db->meta_db_name;
-	$wpdb->paymentmeta = $rcp_payments_db->meta_db_name;
+	$rcp_payments_db       = new RCP_Payments;
+	$rcp_levels_db         = new RCP_Levels;
+	$rcp_discounts_db      = new RCP_Discounts;
+	$wpdb->levelmeta       = $rcp_levels_db->meta_db_name;
+	$wpdb->rcp_paymentmeta = $rcp_payments_db->meta_db_name;
 
 }

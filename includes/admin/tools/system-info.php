@@ -180,6 +180,7 @@ function rcp_tools_system_info_report() {
 	$return .= 'Redirect Page:                    ' . ( ! empty( $rcp_options['redirect_from_premium'] ) ? get_permalink( $rcp_options['redirect_from_premium'] ) . "\n" : "Unset\n" );
 	$return .= 'Redirect Default Login URL        ' . ( ! empty( $rcp_options['hijack_login_url'] ) ? "True\n" : "False\n" );
 	$return .= 'Login Page:                       ' . ( ! empty( $rcp_options['login_redirect'] ) ? get_permalink( $rcp_options['login_redirect'] ) . "\n" : "Unset\n" );
+	$return .= 'Auto Add Users To Membership:     ' . ( ( ! empty( $rcp_options['auto_add_users'] ) && ! empty( $rcp_options['auto_add_users_level'] ) ) ? rcp_get_subscription_name( $rcp_options['auto_add_users_level'] ) . ' (ID #' . $rcp_options['auto_add_users_level'] . ")\n" : "None\n" );
 	$return .= 'Content Excerpts:                 ' . ucwords( $rcp_options['content_excerpts'] ) . "\n";
 	$return .= 'Prevent Account Sharing:          ' . ( ! empty( $rcp_options['no_login_sharing'] ) ? "True\n" : "False\n" );
 	$return .= 'One Time Discounts                ' . ( ! empty( $rcp_options['one_time_discounts'] ) ? "True\n" : "False\n" );
