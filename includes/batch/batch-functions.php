@@ -21,7 +21,23 @@ namespace RCP\Utils;
 function add_batch_job( array $config ) {
 
 	if( empty( $config ) || empty( $config['name'] ) || empty( $config['description'] ) || empty( $config['callback'] ) || ! is_callable( $config['callback'] ) ) {
-		return new \WP_Error( __( 'Invalid job configuration', 'rcp' ), __( 'You must supply a valid name, description, and callback when registering a batch job.', 'rcp' ) );
+
+		$error = __( 'You must supply a valid name, description, and callback when registering a batch job.', 'rcp' );
+
+		add_action( 'admin_notices', function() use( $config, $error ) {
+			echo '<div class="error"><p>' . sprintf( __( 'There was an error adding job: %s. Error message: %s. If this issue persists, please contact the Restrict Content Pro support team.', 'rcp' ), $config['name'], $error ) . '</p></div>';
+		} );
+
+		return new \WP_Error( __( 'Invalid job configuration', 'rcp' ), $error );
+	}
+
+	if( ! isset( $_GET['rcp-job-id'] ) ) {
+		add_action( 'admin_notices', function() use( $config ) {
+			echo '<div class="notice notice-info"><p>' . __( 'Restrict Content Pro needs perform system maintenance. This maintenance is <strong>REQUIRED</strong>.', 'rcp' ) .'</p>';
+			echo '<p>' . sprintf( _x( 'Description: %s', 'batch job description', 'rcp' ), $config['description'] ) . '</p>';
+			echo '<p>' . sprintf( __( '<a href="%s">Click here</a> to learn more and start the upgrade.', 'rcp' ), esc_url( admin_url( 'admin.php?page=rcp-tools&tab=batch&rcp-job-id='.sanitize_key( $config['name'] ) ) ) );
+			echo '</div>';
+		} );
 	}
 
 	/**
