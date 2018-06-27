@@ -613,3 +613,57 @@ function rcp_print_user_payments( $user_id ) {
 	endif;
 	return $payments_list;
 }
+
+/**
+ * Log a user in
+ *
+ * @deprecated 3.0 Deprecated in favor of using wp_signon() from WordPress core.
+ *
+ * @param int    $user_id    ID of the user to login.
+ * @param string $user_login Login name of the user.
+ * @param bool   $remember   Whether or not to remember the user.
+ *
+ * @since  1.0
+ * @return void
+ */
+function rcp_login_user_in( $user_id, $user_login, $remember = false ) {
+	$user = get_userdata( $user_id );
+	if( ! $user )
+		return;
+	wp_set_auth_cookie( $user_id, $remember );
+	wp_set_current_user( $user_id, $user_login );
+	do_action( 'wp_login', $user_login, $user );
+}
+
+/**
+ * Check PayPal return price after applying discount.
+ *
+ * @deprecated 3.0
+ *
+ * @param float $price
+ * @param float $amount
+ * @param float $amount2
+ * @param int $user_id
+ *
+ * @return bool
+ */
+function rcp_check_paypal_return_price_after_discount( $price, $amount, $amount2, $user_id ) {
+	// get an array of all discount codes this user has used
+	$user_discounts = get_user_meta( $user_id, 'rcp_user_discounts', true );
+	if( !is_array( $user_discounts ) || $user_discounts == '' ) {
+		// this user has never used a discount code
+		return false;
+	}
+	foreach( $user_discounts as $discount_code ) {
+		if( !rcp_validate_discount( $discount_code ) ) {
+			// discount code is inactive
+			return false;
+		}
+		$code_details = rcp_get_discount_details_by_code( $discount_code );
+		$discounted_price = rcp_get_discounted_price( $price, $code_details->amount, $code_details->unit );
+		if( $discounted_price == $amount || $discounted_price == $amount2 ) {
+			return true;
+		}
+	}
+	return false;
+}

@@ -264,7 +264,7 @@ class RCP_Payment_Gateway_PayPal extends RCP_Payment_Gateway {
 			$member = new RCP_Member( $user_id );
 
 			if( ! $member || ! $member->ID > 0 ) {
-				rcp_log( sprintf( 'PayPal IPN Failed: unable to find associated member in RCP. Item Name: %s; Item Number: %d; TXN Type: %s; TXN ID: %s', $posted['item_name'], $posted['item_number'], $posted['txn_type'], $posted['txn_id'] ) );
+				rcp_log( sprintf( 'PayPal IPN Failed: unable to find associated member in RCP. Item Name: %s; Item Number: %d; TXN Type: %s; TXN ID: %s', $posted['item_name'], $posted['item_number'], $posted['txn_type'], $posted['txn_id'] ), true );
 				die( 'no member found' );
 			}
 
@@ -349,16 +349,12 @@ class RCP_Payment_Gateway_PayPal extends RCP_Payment_Gateway {
 				if( ! rcp_is_valid_currency( $currency_code ) ) {
 					// the currency code is invalid
 
-					rcp_log( sprintf( 'The currency code in a PayPal IPN request did not match the site currency code. Provided: %s', $currency_code ) );
+					rcp_log( sprintf( 'The currency code in a PayPal IPN request did not match the site currency code. Provided: %s', $currency_code ), true );
 
 
 					die( 'invalid currency code' );
 				}
 
-			}
-
-			if( isset( $rcp_options['email_ipn_reports'] ) ) {
-				wp_mail( get_bloginfo('admin_email'), __( 'IPN report', 'rcp' ), $listener->getTextReport() );
 			}
 
 			/* now process the kind of subscription/payment */
@@ -432,10 +428,14 @@ class RCP_Payment_Gateway_PayPal extends RCP_Payment_Gateway {
 
 					rcp_log( 'Processing PayPal Standard subscr_cancel IPN.' );
 
-					if( ! $member->just_upgraded() ) {
+					if( isset( $posted['subscr_id'] ) && $posted['subscr_id'] == $member->get_payment_profile_id() && 'cancelled' !== $member->get_status() && ! $member->just_upgraded() ) {
 
 						// user is marked as cancelled but retains access until end of term
-						$member->cancel();
+						if ( $member->is_active() ) {
+							$member->cancel();
+						} else {
+							rcp_log( sprintf( 'Member #%d is not active - not cancelling account.', $member->ID ) );
+						}
 
 						// set the use to no longer be recurring
 						delete_user_meta( $user_id, 'rcp_paypal_subscriber' );
@@ -553,12 +553,7 @@ class RCP_Payment_Gateway_PayPal extends RCP_Payment_Gateway {
 
 		} else {
 
-			rcp_log( 'Invalid PayPal IPN attempt.' );
-
-			if( isset( $rcp_options['email_ipn_reports'] ) ) {
-				// an invalid IPN attempt was made. Send an email to the admin account to investigate
-				wp_mail( get_bloginfo( 'admin_email' ), __( 'Invalid IPN', 'rcp' ), $listener->getTextReport() );
-			}
+			rcp_log( 'Invalid PayPal IPN attempt.', true );
 
 			status_header( 400 );
 			die( 'invalid IPN' );

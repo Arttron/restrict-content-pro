@@ -168,7 +168,7 @@ function rcp_tools_system_info_report() {
 	$levels = rcp_get_subscription_levels();
 	if ( ! empty( $levels ) ) {
 		foreach ( $levels as $level ) {
-			$return .= str_pad( $level->name . ':', 40 ) . sprintf( '%s; Price: %s; Duration: %s %s; Trial: %s %s', $level->status, $level->price, $level->duration, $level->duration_unit, $level->trial_duration, $level->trial_duration_unit ) . "\n";
+			$return .= str_pad( $level->name . ':', 40 ) . sprintf( '%s; ID: %d; Price: %s; Fee: %s; Duration: %s %s; Trial: %s %s', $level->status, $level->id, $level->price, $level->fee, $level->duration, $level->duration_unit, $level->trial_duration, $level->trial_duration_unit ) . "\n";
 		}
 	}
 
@@ -180,11 +180,11 @@ function rcp_tools_system_info_report() {
 	$return .= 'Redirect Page:                    ' . ( ! empty( $rcp_options['redirect_from_premium'] ) ? get_permalink( $rcp_options['redirect_from_premium'] ) . "\n" : "Unset\n" );
 	$return .= 'Redirect Default Login URL        ' . ( ! empty( $rcp_options['hijack_login_url'] ) ? "True\n" : "False\n" );
 	$return .= 'Login Page:                       ' . ( ! empty( $rcp_options['login_redirect'] ) ? get_permalink( $rcp_options['login_redirect'] ) . "\n" : "Unset\n" );
+	$return .= 'Auto Add Users To Membership:     ' . ( ( ! empty( $rcp_options['auto_add_users'] ) && ! empty( $rcp_options['auto_add_users_level'] ) ) ? rcp_get_subscription_name( $rcp_options['auto_add_users_level'] ) . ' (ID #' . $rcp_options['auto_add_users_level'] . ")\n" : "None\n" );
 	$return .= 'Content Excerpts:                 ' . ucwords( $rcp_options['content_excerpts'] ) . "\n";
 	$return .= 'Prevent Account Sharing:          ' . ( ! empty( $rcp_options['no_login_sharing'] ) ? "True\n" : "False\n" );
 	$return .= 'One Time Discounts                ' . ( ! empty( $rcp_options['one_time_discounts'] ) ? "True\n" : "False\n" );
 	$return .= 'Disable WordPress Toolbar         ' . ( ! empty( $rcp_options['disable_toolbar'] ) ? "True\n" : "False\n" );
-	$return .= 'Email IPN Reports:                ' . ( ! empty( $rcp_options['email_ipn_reports'] ) ? "True\n" : "False\n" );
 	$return .= 'Disable Form CSS:                 ' . ( ! empty( $rcp_options['disable_css'] ) ? "True\n" : "False\n" );
 	$return .= 'Enable reCaptcha:                 ' . ( ! empty( $rcp_options['enable_recaptcha'] ) ? "True\n" : "False\n" );
 	$return .= 'reCaptcha Site Key:               ' . ( ! empty( $rcp_options['recaptcha_public_key'] ) ? "Set\n" : "Unset\n" );
@@ -258,7 +258,7 @@ function rcp_tools_system_info_report() {
 	// Must-use plugins
 	// NOTE: MU plugins can't show updates!
 	$muplugins = get_mu_plugins();
-	if( count( $muplugins > 0 ) ) {
+	if( count( $muplugins ) > 0 ) {
 		$return .= "\n" . '-- Must-Use Plugins' . "\n\n";
 
 		foreach( $muplugins as $plugin => $plugin_data ) {

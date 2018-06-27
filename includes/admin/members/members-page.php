@@ -102,7 +102,7 @@ function rcp_members_page() {
 			</ul>
 			<form id="rcp-member-search" method="get" action="<?php menu_page_url( 'rcp-members' ); ?>">
 				<label class="screen-reader-text" for="rcp-member-search-input"><?php _e( 'Search Members', 'rcp' ); ?></label>
-				<input type="search" id="rcp-member-search-input" name="s" value="<?php echo esc_attr( $search ); ?>"/>
+				<input type="search" id="rcp-member-search-input" name="s" value="<?php echo isset($_REQUEST['s']) ? esc_attr( wp_unslash( $_REQUEST['s'] ) ) : ''; ?>"/>
 				<input type="hidden" name="page" value="rcp-members"/>
 				<input type="hidden" name="status" value="<?php echo esc_attr( $status ); ?>"/>
 				<input type="submit" name="" id="rcp-member-search-submit" class="button" value="<?php _e( 'Search members', 'rcp' ); ?>"/>
@@ -168,7 +168,17 @@ function rcp_members_page() {
 					<?php
 
 					if( isset( $_GET['signup_method'] ) ) {
-						$method = $_GET['signup_method'] == 'live' ? 'live' : 'manual';
+						switch( $_GET['signup_method'] ) {
+							case 'live':
+								$method = 'live';
+								break;
+							case 'imported':
+								$method = 'imported';
+								break;
+							default:
+								$method = 'manual';
+								break;
+						}
 						$members = get_users( array(
 								'meta_key' => 'rcp_signup_method',
 								'meta_value' => $method,
@@ -232,7 +242,7 @@ function rcp_members_page() {
 								<td data-colname="<?php _e( 'Status', 'rcp' ); ?>"><?php echo rcp_print_status($member->ID, false); ?></td>
 								<td data-colname="<?php _e( 'Recurring', 'rcp' ); ?>"><?php echo rcp_is_recurring($member->ID) ? __('yes', 'rcp') : __('no', 'rcp'); ?></td>
 								<td data-colname="<?php _e( 'Expiration', 'rcp' ); ?>"><?php echo $expiration; ?></td>
-								<td data-colname="<?php _e( 'User Role', 'rcp' ); ?>"><?php echo rcp_get_user_role($member->ID); ?></td>
+								<td data-colname="<?php _e( 'User Role', 'rcp' ); ?>"><?php echo translate_user_role( rcp_get_user_role_name( $member->ID ) ); ?></td>
 								<?php do_action('rcp_members_page_table_column', $member->ID); ?>
 							</tr>
 						<?php $i++;

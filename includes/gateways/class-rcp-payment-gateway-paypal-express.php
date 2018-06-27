@@ -116,7 +116,11 @@ class RCP_Payment_Gateway_PayPal_Express extends RCP_Payment_Gateway {
 			$args['PAYMENTREQUEST_0_CUSTOM'] .= '|trial';
 		}
 
-		$request = wp_remote_post( $this->api_endpoint, array( 'timeout' => 45, 'sslverify' => false, 'httpversion' => '1.1', 'body' => $args ) );
+		$request = wp_remote_post( $this->api_endpoint, array(
+			'timeout' => 45,
+			'httpversion' => '1.1',
+			'body' => $args
+		) );
 		$body    = wp_remote_retrieve_body( $request );
 		$code    = wp_remote_retrieve_response_code( $request );
 		$message = wp_remote_retrieve_response_message( $request );
@@ -228,7 +232,11 @@ class RCP_Payment_Gateway_PayPal_Express extends RCP_Payment_Gateway {
 					unset( $args['INITAMT'] );
 				}
 
-				$request = wp_remote_post( $this->api_endpoint, array( 'timeout' => 45, 'sslverify' => false, 'httpversion' => '1.1', 'body' => $args ) );
+				$request = wp_remote_post( $this->api_endpoint, array(
+					'timeout' => 45,
+					'httpversion' => '1.1',
+					'body' => $args
+				) );
 				$body    = wp_remote_retrieve_body( $request );
 				$code    = wp_remote_retrieve_response_code( $request );
 				$message = wp_remote_retrieve_response_message( $request );
@@ -296,7 +304,11 @@ class RCP_Payment_Gateway_PayPal_Express extends RCP_Payment_Gateway {
 					'BUTTONSOURCE'                   => 'EasyDigitalDownloads_SP'
 				);
 
-				$request = wp_remote_post( $this->api_endpoint, array( 'timeout' => 45, 'sslverify' => false, 'httpversion' => '1.1', 'body' => $args ) );
+				$request = wp_remote_post( $this->api_endpoint, array(
+					'timeout' => 45,
+					'httpversion' => '1.1',
+					'body' => $args
+				) );
 				$body    = wp_remote_retrieve_body( $request );
 				$code    = wp_remote_retrieve_response_code( $request );
 				$message = wp_remote_retrieve_response_message( $request );
@@ -439,7 +451,7 @@ class RCP_Payment_Gateway_PayPal_Express extends RCP_Payment_Gateway {
 		$member = new RCP_Member( $user_id );
 
 		if( ! $member || ! $member->ID > 0 ) {
-			rcp_log( 'Exiting PayPal Express IPN - member ID not found.' );
+			rcp_log( 'Exiting PayPal Express IPN - member ID not found.', true );
 
 			die( 'no member found' );
 		}
@@ -453,13 +465,13 @@ class RCP_Payment_Gateway_PayPal_Express extends RCP_Payment_Gateway {
 		}
 
 		if( ! $subscription_id ) {
-			rcp_log( 'Exiting PayPal Express IPN - no subscription ID for member.' );
+			rcp_log( 'Exiting PayPal Express IPN - no subscription ID for member.', true );
 
 			die( 'no subscription for member found' );
 		}
 
 		if( ! $subscription_level = rcp_get_subscription_details( $subscription_id ) ) {
-			rcp_log( 'Exiting PayPal Express IPN - no subscription level found.' );
+			rcp_log( 'Exiting PayPal Express IPN - no subscription level found.', true );
 
 			die( 'no subscription level found' );
 		}
@@ -467,11 +479,12 @@ class RCP_Payment_Gateway_PayPal_Express extends RCP_Payment_Gateway {
 		$amount = number_format( (float) $posted['mc_gross'], 2, '.', '' );
 
 		// setup the payment info in an array for storage
+		$pending_key = $member->get_pending_subscription_key();
 		$payment_data = array(
 			'date'             => date( 'Y-m-d H:i:s', strtotime( $posted['payment_date'] ) ),
 			'subscription'     => $subscription_level->name,
 			'payment_type'     => $posted['txn_type'],
-			'subscription_key' => $member->get_subscription_key(),
+			'subscription_key' => ! empty( $pending_key ) ? $pending_key : $member->get_subscription_key(),
 			'amount'           => $amount,
 			'user_id'          => $user_id,
 			'transaction_id'   => $posted['txn_id'],
@@ -479,10 +492,6 @@ class RCP_Payment_Gateway_PayPal_Express extends RCP_Payment_Gateway {
 		);
 
 		do_action( 'rcp_valid_ipn', $payment_data, $user_id, $posted );
-
-		if( isset( $rcp_options['email_ipn_reports'] ) ) {
-			wp_mail( get_bloginfo('admin_email'), __( 'IPN report', 'rcp' ), $listener->getTextReport() );
-		}
 
 		/* now process the kind of subscription/payment */
 
@@ -503,7 +512,7 @@ class RCP_Payment_Gateway_PayPal_Express extends RCP_Payment_Gateway {
 				}
 
 				if ( empty( $transaction_id ) || $rcp_payments->payment_exists( $transaction_id ) ) {
-					rcp_log( sprintf( 'Breaking out of PayPal Express IPN recurring_payment_profile_created. Transaction ID not given or payment already exists. TXN ID: %s', $transaction_id ) );
+					rcp_log( sprintf( 'Breaking out of PayPal Express IPN recurring_payment_profile_created. Transaction ID not given or payment already exists. TXN ID: %s', $transaction_id ), true );
 
 					break;
 				}
@@ -633,7 +642,7 @@ class RCP_Payment_Gateway_PayPal_Express extends RCP_Payment_Gateway {
 						}
 
 						if ( empty( $payment_data['transaction_id'] ) || $rcp_payments->payment_exists( $payment_data['transaction_id'] ) ) {
-							rcp_log( sprintf( 'Not inserting PayPal Express web_accept payment. Transaction ID not given or payment already exists. TXN ID: %s', $payment_data['transaction_id'] ) );
+							rcp_log( sprintf( 'Not inserting PayPal Express web_accept payment. Transaction ID not given or payment already exists. TXN ID: %s', $payment_data['transaction_id'] ), true );
 						} else {
 							$rcp_payments->insert( $payment_data );
 						}
@@ -646,7 +655,11 @@ class RCP_Payment_Gateway_PayPal_Express extends RCP_Payment_Gateway {
 					case 'expired' :
 					case 'failed' :
 					case 'voided' :
-						$member->cancel();
+						if ( $member->is_active() ) {
+							$member->cancel();
+						} else {
+							rcp_log( sprintf( 'Member #%d is not active - not cancelling account.', $member->ID ) );
+						}
 						break;
 
 				endswitch;
@@ -680,7 +693,6 @@ class RCP_Payment_Gateway_PayPal_Express extends RCP_Payment_Gateway {
 
 		$request = wp_remote_post( $this->api_endpoint, array(
 			'timeout'     => 45,
-			'sslverify'   => false,
 			'httpversion' => '1.1',
 			'body'        => $args
 		) );
