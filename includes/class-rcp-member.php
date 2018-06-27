@@ -1292,31 +1292,8 @@ class RCP_Member extends WP_User {
 
 			} else {
 
-				if ( in_array( $sub_id, $subscription_levels ) ) {
+				$ret = in_array( $sub_id, $subscription_levels );
 
-					$needs_paid = false;
-
-					foreach( $subscription_levels as $level ) {
-						$price = rcp_get_subscription_price( $level );
-						if ( ! empty( $price ) && $price > 0 ) {
-							$needs_paid = true;
-						}
-					}
-
-					if ( $needs_paid ) {
-
-						$ret = $this->is_active();
-
-					} else {
-
-						$ret = true;
-					}
-
-				} else {
-
-					$ret = false;
-
-				}
 			}
 		}
 

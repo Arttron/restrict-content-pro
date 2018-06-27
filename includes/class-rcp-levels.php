@@ -243,7 +243,7 @@ class RCP_Levels {
 	 *
 	 * @access  public
 	 * @since   1.5
-	 * @return  int|false ID of the newly created level or false on failure.
+	 * @return  int|WP_Error ID of the newly created level or WP_Error on failure.
 	 */
 	public function insert( $args = array() ) {
 
@@ -279,16 +279,16 @@ class RCP_Levels {
 
 		// Validate price value
 		if ( false === $this->valid_amount( $args['price'] ) || $args['price'] < 0 ) {
-			rcp_log( sprintf( 'Failed inserting subscription level: invalid price ( %s ).', $args['price'] ) );
+			rcp_log( sprintf( 'Failed inserting subscription level: invalid price ( %s ).', $args['price'] ), true );
 
-			return false;
+			return new WP_Error( 'invalid_level_price', __( 'Invalid price: the subscription level price must be a valid positive number.', 'rcp' ) );
 		}
 
 		// Validate fee value
 		if ( false === $this->valid_amount( $args['fee'] ) ) {
-			rcp_log( sprintf( 'Failed inserting subscription level: invalid fee ( %s ).', $args['fee'] ) );
+			rcp_log( sprintf( 'Failed inserting subscription level: invalid fee ( %s ).', $args['fee'] ), true );
 
-			return false;
+			return new WP_Error( 'invalid_level_fee', __( 'Invalid fee: the subscription level fee must be a valid number.', 'rcp' ) );
 		}
 
 		/**
@@ -297,9 +297,9 @@ class RCP_Levels {
 		 */
 		if ( $args['trial_duration'] > 0 ) {
 			if ( $args['price'] <= 0 || $args['duration'] <= 0 ) {
-				rcp_log( sprintf( 'Failed inserting subscription level: invalid settings for free trial. Price: %f; Duration: %d', $args['price'], $args['duration'] ) );
+				rcp_log( sprintf( 'Failed inserting subscription level: invalid settings for free trial. Price: %f; Duration: %d', $args['price'], $args['duration'] ), true );
 
-				return false;
+				return new WP_Error( 'invalid_level_trial', __( 'Invalid trial: a subscription level with a trial must have a price and duration greater than zero.', 'rcp' ) );
 			}
 		}
 
@@ -362,10 +362,10 @@ class RCP_Levels {
 
 			return $level_id;
 		} else {
-			rcp_log( sprintf( 'Failed inserting new subscription level into database. Args: %s', var_export( $args, true ) ) );
+			rcp_log( sprintf( 'Failed inserting new subscription level into database. Args: %s', var_export( $args, true ) ), true );
 		}
 
-		return false;
+		return new WP_Error( 'level_not_added', __( 'An unexpected error occurred while trying to add the subscription level.', 'rcp' ) );
 
 	}
 
@@ -378,7 +378,7 @@ class RCP_Levels {
 	 *
 	 * @access  public
 	 * @since   1.5
-	 * @return  bool Whether or not the update was successful.
+	 * @return  true|WP_Error True if the update was successful, WP_Error on failure.
 	 */
 	public function update( $level_id = 0, $args = array() ) {
 
@@ -400,16 +400,16 @@ class RCP_Levels {
 
 		// Validate price value
 		if ( false === $this->valid_amount( $args['price'] ) || $args['price'] < 0 ) {
-			rcp_log( sprintf( 'Failed updating subscription level #%d: invalid price ( %s ).', $level_id, $args['price'] ) );
+			rcp_log( sprintf( 'Failed updating subscription level #%d: invalid price ( %s ).', $level_id, $args['price'] ), true );
 
-			return false;
+			return new WP_Error( 'invalid_level_price', __( 'Invalid price: the subscription level price must be a valid positive number.', 'rcp' ) );
 		}
 
 		// Validate fee value
 		if ( false === $this->valid_amount( $args['fee'] ) ) {
-			rcp_log( sprintf( 'Failed updating subscription level #%d: invalid fee ( %s ).', $level_id, $args['fee'] ) );
+			rcp_log( sprintf( 'Failed updating subscription level #%d: invalid fee ( %s ).', $level_id, $args['fee'] ), true );
 
-			return false;
+			return new WP_Error( 'invalid_level_fee', __( 'Invalid fee: the subscription level fee must be a valid number.', 'rcp' ) );
 		}
 
 		/**
@@ -418,9 +418,9 @@ class RCP_Levels {
 		 */
 		if ( $args['trial_duration'] > 0 ) {
 			if ( $args['price'] <= 0 || $args['duration'] <= 0 ) {
-				rcp_log( sprintf( 'Failed updating subscription level #%d: invalid settings for free trial. Price: %f; Duration: %d', $level_id, $args['price'], $args['duration'] ) );
+				rcp_log( sprintf( 'Failed updating subscription level #%d: invalid settings for free trial. Price: %f; Duration: %d', $level_id, $args['price'], $args['duration'] ), true );
 
-				return false;
+				return new WP_Error( 'invalid_level_trial', __( 'Invalid trial: a subscription level with a trial must have a price and duration greater than zero.', 'rcp' ) );
 			}
 		}
 
@@ -485,9 +485,9 @@ class RCP_Levels {
 			return true;
 		}
 
-		rcp_log( sprintf( 'Failed updating subscription level #%d. Args: %s', absint( $level_id ), var_export( $args, true ) ) );
+		rcp_log( sprintf( 'Failed updating subscription level #%d. Args: %s', absint( $level_id ), var_export( $args, true ) ), true );
 
-		return false;
+		return new WP_Error( 'level_not_added', __( 'An unexpected error occurred while trying to update the subscription level.', 'rcp' ) );
 
 	}
 
