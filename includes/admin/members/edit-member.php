@@ -8,6 +8,8 @@
  * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
  */
 
+global $rcp_options;
+
 $view = isset( $_GET['view'] ) ? sanitize_text_field( $_GET['view'] ) : 'overview';
 
 if( isset( $_GET['edit_member'] ) ) {
@@ -92,6 +94,32 @@ $subscription = rcp_get_subscription_details( $subscription_level_id );
 					<div class="rcp-item-notes-header">
 						<?php echo get_avatar( $member->user_email, 30 ); ?> <span><?php echo $member->first_name . ' ' . $member->last_name; ?></span>
 					</div>
+					<?php
+					if ( ! empty( $rcp_options['enable_terms'] ) ) {
+						echo '<h3>' . __( 'Agreed to Terms', 'rcp' ) . '</h3>';
+						$terms_agreed = get_user_meta( $member->ID, 'rcp_terms_agreed', true );
+						if ( ! empty( $terms_agreed ) && is_array( $terms_agreed ) ) {
+							foreach ( $terms_agreed as $terms_agreed_date ) {
+								echo date_i18n( get_option( 'date_format' ) . ' H:i:s', $terms_agreed_date ) . '<br />';
+							}
+						} else {
+							_e( 'None', 'rcp' );
+						}
+					}
+
+					if ( ! empty( $rcp_options['enable_privacy_policy'] ) ) {
+						echo '<h3>' . __( 'Agreed to Privacy Policy', 'rcp' ) . '</h3>';
+						$privacy_policy_agreed = get_user_meta( $member->ID, 'rcp_privacy_policy_agreed', true );
+						if ( ! empty( $privacy_policy_agreed ) && is_array( $privacy_policy_agreed ) ) {
+							foreach ( $privacy_policy_agreed as $privacy_policy_agreed_date ) {
+								echo date_i18n( get_option( 'date_format' ) . ' H:i:s', $privacy_policy_agreed_date ) . '<br />';
+							}
+						} else {
+							_e( 'None', 'rcp' );
+						}
+					}
+					?>
+
 					<h3><?php _e( 'Notes', 'rcp' ); ?></h3>
 
 					<form id="rcp-edit-member-notes" method="POST">

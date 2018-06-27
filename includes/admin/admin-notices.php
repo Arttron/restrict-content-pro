@@ -49,6 +49,12 @@ function rcp_admin_notices() {
 			echo '<p><a href="' . wp_nonce_url( add_query_arg( array( 'rcp_notice' => 'missing_license' ) ), 'rcp_dismiss_notice', 'rcp_dismiss_notice_nonce' ) . '">' . _x( 'Dismiss Notice', 'License', 'rcp' ) . '</a></p>';
 			echo '</div>';
 		}
+
+		$stripe_user_id = get_option( 'rcp_stripe_connect_account_id' );
+		$enabled_gateways = rcp_get_enabled_payment_gateways();
+		if( empty( $stripe_user_id ) && ( array_key_exists( 'stripe', $enabled_gateways ) || array_key_exists( 'stripe_checkout', $enabled_gateways ) ) ) {
+			echo '<div class="notice notice-info"><p>' . sprintf( __( 'Restrict Content Pro now supports Stripe Connect for easier setup and improved security. <a href="%s">Click here</a> to learn more about connecting your Stripe account.', 'rcp' ), esc_url( admin_url( 'admin.php?page=rcp-settings#payments' ) ) ) . '</p></div>';
+		}
 	}
 
 	if( current_user_can( 'activate_plugins' ) ) {
@@ -158,15 +164,33 @@ function rcp_admin_notices() {
 				$text = __( 'Subscription level updated', 'rcp' );
 				break;
 
+			case 'invalid_level_price' :
+
+				$text  = __( 'Invalid price: the subscription level price must be a valid positive number.', 'rcp' );
+				$class = 'error';
+				break;
+
+			case 'invalid_level_fee' :
+
+				$text  = __( 'Invalid fee: the subscription level price must be a valid positive number.', 'rcp' );
+				$class = 'error';
+				break;
+
+			case 'invalid_level_trial' :
+
+				$text = sprintf( __( 'Invalid trial: a subscription level with a trial must have a price and duration greater than zero. Please see <a href="%s">the documentation article on creating trials</a> for further instructions.', 'rcp' ), 'http://docs.restrictcontentpro.com/article/1764-creating-free-trials' );
+				$class = 'error';
+				break;
+
 			case 'level_not_added' :
 
-				$text = __( 'Subscription level could not be added', 'rcp' );
+				$text  = __( 'An unexpected error occurred while trying to add the subscription level.', 'rcp' );
 				$class = 'error';
 				break;
 
 			case 'level_not_updated' :
 
-				$text = __( 'Subscription level could not be updated', 'rcp' );
+				$text = __( 'An unexpected error occurred while trying to update the subscription level.', 'rcp' );
 				$class = 'error';
 				break;
 

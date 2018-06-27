@@ -58,7 +58,8 @@ function rcp_admin_scripts( $hook ) {
 				'action_cancel'       => __( 'Cancel', 'rcp' ),
 				'action_edit'         => __( 'Edit', 'rcp' ),
 				'yes'                 => __( 'Yes', 'rcp' ),
-				'no'                  => __( 'No', 'rcp' )
+				'no'                  => __( 'No', 'rcp' ),
+				'currencies'          => json_encode( rcp_get_currencies() )
 			)
 		);
 	}
