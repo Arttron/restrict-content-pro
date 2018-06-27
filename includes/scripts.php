@@ -44,7 +44,7 @@ function rcp_admin_scripts( $hook ) {
 		wp_localize_script( 'rcp-admin-scripts', 'rcp_vars', array(
 				'rcp_member_nonce'    => wp_create_nonce( 'rcp_member_nonce' ),
 				'cancel_user'         => __( 'Are you sure you wish to cancel this member\'s subscription?', 'rcp' ),
-				'delete_member'       => __( 'Are you sure you want to delete this member? The account and all associated data will be permanently deleted. Payment records will remain but will no longer be associated with an account. Proceed?', 'rcp' ),
+				'delete_member'       => __( 'Are you sure you want to delete this member? The user account and all associated data will be permanently deleted. Payment records will remain but will no longer be associated with an account. This cannot be undone. Proceed?', 'rcp' ),
 				'delete_subscription' => __( 'If you delete this subscription, all members registered with this level will be canceled. Proceed?', 'rcp' ),
 				'delete_payment'      => __( 'Are you sure you want to delete this payment? This action is irreversible. Proceed?', 'rcp' ),
 				'delete_discount'     => __( 'Are you sure you want to delete this discount? This action is irreversible. Proceed?', 'rcp' ),

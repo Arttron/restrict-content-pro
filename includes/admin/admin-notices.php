@@ -151,7 +151,7 @@ function rcp_admin_notices() {
 
 			case 'member_deleted' :
 
-				$text = __( 'Member successfully deleted..', 'rcp' );
+				$text = __( 'Member successfully deleted.', 'rcp' );
 				break;
 		}
 	}
