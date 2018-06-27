@@ -1579,14 +1579,13 @@ function rcp_delete_member( $user_id ) {
 		return false;
 	}
 
-	// Cancel payment profile at the gateway.
-	if ( $member->can_cancel() ) {
-		rcp_log( sprintf( 'Cancelling payment profile for user ID #%d.', $user_id ) );
-		$member->cancel_payment_profile( false );
-	}
-
 	// @todo Remove associated data from future subscription tables.
 
+	/**
+	 * Delete user account.
+	 * Recurring subscription is cancelled via `delete_user` hook.
+	 * @see rcp_cancel_subscription_on_user_delete()
+	 */
 	$deleted = wp_delete_user( $user_id );
 
 	if ( $deleted ) {
@@ -1598,3 +1597,26 @@ function rcp_delete_member( $user_id ) {
 	return $deleted;
 
 }
+
+/**
+ * Cancel recurring membership when user account is deleted.
+ *
+ * @param int      $user_id  ID of the user to delete.
+ * @param int|null $reassign ID of the user to reassign posts and links to.
+ *                           Default null, for no reassignment.
+ *
+ * @since 3.0
+ * @return void
+ */
+function rcp_cancel_subscription_on_user_delete( $user_id, $reassign ) {
+
+	$member = new RCP_Member( $user_id );
+
+	// Cancel payment profile at the gateway.
+	if ( $member->can_cancel() ) {
+		rcp_log( sprintf( 'Cancelling payment profile for user ID #%d.', $user_id ) );
+		$member->cancel_payment_profile( false );
+	}
+
+}
+add_action( 'delete_user', 'rcp_cancel_subscription_on_user_delete', 10, 2 );
