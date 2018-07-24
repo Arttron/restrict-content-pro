@@ -69,6 +69,9 @@ add_action( 'wp_ajax_nopriv_rcp_load_gateway_fields', 'rcp_load_gateway_fields' 
  * @return void
  */
 function rcp_calc_total_ajax() {
+
+	global $rcp_options;
+
 	$return = array(
 		'valid' => false,
 		'total' => __( 'No available subscription levels for your account.', 'rcp' ),
@@ -77,6 +80,12 @@ function rcp_calc_total_ajax() {
 	if ( ! rcp_is_registration() ) {
 		wp_send_json( $return );
 	}
+error_log(print_r($_POST));
+	$return['amount'] = rcp_get_registration()->get_total();
+	$return['recurring_amount'] = rcp_get_registration()->get_recurring_total();
+//	$return['recurring'] = rcp_registration_is_recurring();
+	$return['recurring'] = isset( $_POST['recurring'] );
+	$return['one_time_discounts'] = isset( $rcp_options['one_time_discounts'] );
 
 	ob_start();
 

@@ -46,7 +46,31 @@ jQuery(document).ready(function($) {
 
 	});
 
-	$(document.getElementById('rcp_auto_renew')).on('change', rcp_calc_total);
+	$(document.getElementById('rcp_auto_renew')).on('change', function() {
+
+		rcp_validate_gateways();
+		rcp_calc_total();
+
+		// if( $(this).is(':checked') ) {
+		//
+		// 	$('.rcp_gateway_fields, #rcp_gateway_extra_fields').show();
+		//
+		// } else {
+		//
+		// 	if( $('.rcp_gateway_fields').hasClass( 'rcp_discounted_100' ) ) {
+		//
+		// 		$('.rcp_gateway_fields, #rcp_gateway_extra_fields').hide();
+		//
+		// 	} else {
+		//
+		// 		$('.rcp_gateway_fields, #rcp_gateway_extra_fields').show();
+		//
+		// 	}
+		//
+		// }
+
+	});
+
 	$('body').on( 'rcp_discount_change rcp_level_change rcp_gateway_change', rcp_calc_total);
 
 	/**
@@ -256,7 +280,9 @@ function rcp_validate_gateways() {
 	var lifetime = level.data( 'duration' ) == 'forever';
 	var level_has_trial = rcp_script_options.trial_levels.indexOf(level.val()) !== -1;
 	var gateway  = rcp_get_gateway();
-
+	var auto_renew = $('#rcp_auto_renew_wrap input').prop('checked');
+console.log('auto_renew');
+console.log(auto_renew);
 	rcp_validating_gateway = true;
 
 	if( level.attr('rel') == 0 ) {
@@ -272,7 +298,7 @@ function rcp_validate_gateways() {
 
 	} else {
 
-		if( full ) {
+		if( full && ! rcp_script_options.one_time_discounts && ! auto_renew ) {
 
 			$('#rcp_gateway_extra_fields').remove();
 
@@ -292,20 +318,22 @@ function rcp_validate_gateways() {
 			});
 
 			$('.rcp_gateway_fields').show();
-			var data = { action: 'rcp_load_gateway_fields', rcp_gateway: gateway.val() };
+			var data = { action: 'rcp_load_gateway_fields', rcp_gateway: gateway.val(), rcp_level: level.val(), recurring: auto_renew_checked };
 
 			$.post( rcp_script_options.ajaxurl, data, function(response) {
+	console.log('response in rcp_validate_gateways');
+	console.log(response);
 				$('#rcp_gateway_extra_fields').remove();
 				if( response.success && response.data.fields ) {
 					if( $('.rcp_gateway_fields' ).length ) {
 
 						$( '<div class="rcp_gateway_' + gateway.val() + '_fields" id="rcp_gateway_extra_fields">' + response.data.fields + '</div>' ).insertAfter('.rcp_gateway_fields');
-
+						rcp_prepare_registration_fields(response.data);
 					} else {
 
 						// Pre 2.1 template files
 						$( '<div class="rcp_gateway_' + gateway.val() + '_fields" id="rcp_gateway_extra_fields">' + response.data.fields + '</div>' ).insertAfter('.rcp_gateways_fieldset');
-
+						rcp_prepare_registration_fields(response.data);
 					}
 				}
 				form.unblock();
@@ -315,7 +343,14 @@ function rcp_validate_gateways() {
 		// Auto Renew checkbox
 		if ( 'yes' == gateway.data('supports-recurring') ) {
 			// Set up defaults
-			$('#rcp_auto_renew_wrap input').prop('checked', rcp_script_options.auto_renew_default);
+			if( auto_renew || rcp_script_options.auto_renew_default ) {
+				var auto_renew_checked = true;
+			} else {
+				var auto_renew_checked = false;
+			}
+			console.log('auto_renew_checked');
+			console.log(auto_renew_checked);
+			$('#rcp_auto_renew_wrap input').prop('checked', auto_renew_checked);
 			$('#rcp_auto_renew_wrap').show();
 
 			// Uncheck and hide if free level, lifetime level, or 100% discount applied
@@ -469,10 +504,49 @@ function rcp_calc_total() {
 			$total.html(response.total);
 		}
 
+	}).done( function(response) {
+		rcp_prepare_registration_fields(response);
 	});
 
 }
 
+function rcp_prepare_registration_fields(args) {
+	console.log('rcp_prepare_registration_fields');
+	console.log(args);
+
+	let $ = jQuery;
+	// TODO: one-time discounts
+	// if( args.recurring ) {
+	// 	if( args.amount <= 0 || ! args.one_time_discounts ) {
+	//
+	// 	}
+	// }
+	if( args.amount <= 0 && (args.recurring_amount <= 0 || ! args.recurring) ) {
+		console.log('hiding fields');
+		$('.rcp_gateway_fields').hide();
+		// $('#rcp_gateway_extra_fields').hide();
+		$('#rcp_gateway_extra_fields').remove();
+		$('#rcp_auto_renew_wrap input').prop('checked', args.recurring);
+	} else {
+		console.log('showing fields');
+		// rcp_validate_gateways();
+		$('.rcp_gateway_fields').show();
+		$('#rcp_auto_renew_wrap').show();
+		$('#rcp_auto_renew_wrap input').prop('checked', args.recurring);
+		$('#rcp_gateway_extra_fields').show();
+	}
+
+	// if( (args.amount <= 0 && args.recurring_amount <= 0) || (args.amount <= 0 && ! args.recurring) ) {
+	// 	console.log('removing fields');
+	// 	$('.rcp_gateway_fields').hide();
+	// 	$('#rcp_gateway_extra_fields').hide();
+	// 	// $('#rcp_gateway_extra_fields').remove();
+	// } else {
+	// 	$('.rcp_gateway_fields').show();
+	// 	$('#rcp_gateway_extra_fields').show();
+	// }
+
+}
 /**
  * Enables the submit button when a successful
  * reCAPTCHA response is triggered.

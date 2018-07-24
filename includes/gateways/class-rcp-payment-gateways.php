@@ -168,9 +168,15 @@ class RCP_Payment_Gateways {
 			if( isset( $gateway['class'] ) ) {
 				$gateway = new $gateway['class'];
 			}
-
+rcp_setup_registration_init();
 			if ( is_object( $gateway ) ) {
-				wp_send_json_success( array( 'success' => true, 'fields' => $gateway->fields() ) );
+				wp_send_json_success( array(
+					'success' => true,
+					'fields' => $gateway->fields(),
+					'amount' => rcp_get_registration()->get_total(),
+					'recurring_amount' => rcp_get_registration()->get_recurring_total(),
+					'recurring' => rcp_registration_is_recurring()
+				) );
 			} else {
 				wp_send_json_error( array( 'success' => false ) );
 			}
