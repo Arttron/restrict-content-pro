@@ -349,7 +349,10 @@ function rcp_tools_system_info_report() {
 
 	$return = apply_filters( 'rcp_system_info_after_php_extensions', $return );
 
-	$return .= "\n" . '### End System Info ###';
+	$return .= "\n" . '-- Miscellaneous' . "\n\n";
+	$return .= 'System Info Generated:    ' . current_time( 'mysql', true ) . ' (GMT)';
+
+	$return .= "\n\n" . '### End System Info ###';
 
 	return $return;
 }
