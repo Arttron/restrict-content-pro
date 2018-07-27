@@ -19,8 +19,14 @@ function rcp_redirect_from_premium_post() {
 	if( isset($rcp_options['hide_premium'] ) && $rcp_options['hide_premium'] ) {
 		$member = new RCP_Member( $user_ID );
 		if( is_singular() && ! $member->can_access( $post->ID ) ) {
-			if( isset( $rcp_options['redirect_from_premium'] ) ) {
-				$redirect = get_permalink( $rcp_options['redirect_from_premium'] );
+			$redirect_page_id = $rcp_options['redirect_from_premium'];
+			if( ! empty( $redirect_page_id ) ) {
+				// Bail without redirecting if we're already on this page.
+				if ( $redirect_page_id == $post->ID ) {
+					return;
+				}
+
+				$redirect = get_permalink( $redirect_page_id );
 			} else {
 				$redirect = home_url();
 			}
